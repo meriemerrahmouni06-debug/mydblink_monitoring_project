@@ -78,9 +78,12 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - ./producer:/opt/airflow/producer
+      - ./consumer:/opt/airflow/consumer
     ports:
       - "8081:8080"
     command: webserver
+
 
   airflow-scheduler:
     image: apache/airflow:2.7.1-python3.10
@@ -96,6 +99,8 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - ./producer:/opt/airflow/producer
+      - ./consumer:/opt/airflow/consumer
     command: scheduler
 
 volumes:

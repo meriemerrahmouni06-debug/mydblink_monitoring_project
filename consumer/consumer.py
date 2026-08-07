@@ -82,28 +82,39 @@ def build_consumer():
         group_id="monitoring-consumer-group",#à partir d'où ? reprendre la lecture
         value_deserializer=lambda v: json.loads(v.decode("utf-8")),
     )
-
+()
 def main():
     consumer = build_consumer()
     pg_conn = get_pg_connection()
     pg_conn.autocommit = True
     cursor = pg_conn.cursor()
 
-    # Table de correspondance topic -> requete SQL, pour retrouver vite la bonne config
     topic_to_config = {t["topic"]: t for t in TOPICS}
 
-    print("En ecoute sur Kafka... (Ctrl+C pour arreter)")
+    print("Recuperation des messages disponibles...")
 
-    for message in consumer:
-        event = message.value
-        topic = message.topic
-        config = topic_to_config[topic]
+    # poll() lit ce qui est disponible maintenant, attend au maximum 10 secondes,
+    # puis rend la main -- contrairement a la boucle infinie precedente
+    messages_batch = consumer.poll(timeout_ms=10000)
 
-        try:
-            cursor.execute(config["insert_sql"], event)
-            print(f"Insere dans {config['table']} : {event}")
-        except Exception as e:
-            print(f"Erreur d'insertion pour le topic {topic} : {e}")
+    total_traites = 0
+
+    for topic_partition, messages in messages_batch.items():
+        for message in messages:
+            event = message.value
+            topic = message.topic
+            config = topic_to_config[topic]
+            try:
+                cursor.execute(config["insert_sql"], event)
+                print(f"Insere/mis a jour dans {config['table']} : {event}")
+                total_traites += 1
+            except Exception as e:
+                print(f"Erreur d'insertion pour le topic {topic} : {e}")
+
+    print(f"Termine. {total_traites} message(s) traite(s).")
+    consumer.close()
+    pg_conn.close()
+
 
 if __name__ == "__main__":
     main()

@@ -63,7 +63,24 @@ TOPICS = [
                 date_collecte = EXCLUDED.date_collecte,
                 inserted_at = NOW()
     """,
-},
+    },
+    # 4 eme topic 
+    {
+        
+    "topic": "monitoring.cpu",
+    "table": "raw_cpu",
+    "insert_sql": """
+        INSERT INTO raw_data.raw_cpu (metric, source_instance, cpu_id, server_name, instance_name, cpu_idle, cpu_sql, date_collecte, date_collecte2)
+        VALUES (%(metric)s, %(source_instance)s, %(id)s, %(ServerName)s, %(InstanceName)s, %(cpu_idle)s, %(cpu_sql)s, %(DateCollecte)s, %(DateCollecte2)s)
+        ON CONFLICT (source_instance, cpu_id)
+        DO UPDATE SET
+                cpu_idle = EXCLUDED.cpu_idle,
+                cpu_sql = EXCLUDED.cpu_sql,
+                date_collecte = EXCLUDED.date_collecte,
+                date_collecte2 = EXCLUDED.date_collecte2,
+                inserted_at = NOW()
+    """,
+    },
 
 ]
 

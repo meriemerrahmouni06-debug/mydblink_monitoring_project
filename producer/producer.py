@@ -3,9 +3,20 @@ import json
 import os #importer depuis .env les mots de passe pour la connexion.
 from dotenv import load_dotenv
 load_dotenv()
+#il faut pour le mode incremental , checkpoint..
+import psycopg2
 #pour maintenant envoyer a kafka :
 from kafka import KafkaProducer
 
+#configuration de connexion avec PostgreSQL , pour mode incremental .]
+#pour faire consultation ou je suis , derniere DateCollecte .
+PG_CONN = {
+    "host": "localhost",
+    "port": os.getenv("POSTGRES_RAW_PORT"),
+    "dbname": os.getenv("POSTGRES_RAW_DB"),
+    "user": os.getenv("POSTGRES_RAW_USER"),
+    "password": os.getenv("POSTGRES_RAW_PASSWORD"),
+}
 # ============================================================
 # CONFIGURATION DES INSTANCES SQL SERVER
 # ============================================================
@@ -74,6 +85,17 @@ TABLES = [
         "metric": "databases",
         "select_columns": "Id, ServerName, InstanceName, DatabaseName, DateCollecte",
         "mode": "full_snapshot", #lit tout 
+    
+    },
+    #4 eme table TBMonitorCPU(mode incremental)
+    {
+    "table_name": "[msdb].[DBMonitor].[TBMonitorCPU]",
+    "topic": "monitoring.cpu",
+    "metric": "cpu",
+    "select_columns": "id, DateCollecte, DateCollecte2, ServerName, InstanceName, cpu_idle, cpu_sql",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_cpu",
 },
 ]
 #code en byte pour kafka comprend 
@@ -81,21 +103,46 @@ kafka_producer = KafkaProducer(
     bootstrap_servers="localhost:9092",
     value_serializer=lambda v: json.dumps(v, ensure_ascii=False).encode("utf-8"),
 )
-def extract_rows(conn_str, table_config):
-    """Lit les lignes d'une table selon son mode (full_snapshot pour l'instant)."""
-    conn = pyodbc.connect(conn_str) #ouvre la connexion vers l'instance SQL Server
-    cursor = conn.cursor() 
+# va etre appeler dans (extract_rows() ,si le mode est incremental , non sinon .
+def get_last_collecte(table_name, instance_name):
+    """Recupere la derniere date deja enregistree pour cette instance, dans Postgres."""
+    conn = psycopg2.connect(**PG_CONN)
+    cursor = conn.cursor()
+    cursor.execute(
+        f"SELECT MAX(date_collecte) FROM raw_data.{table_name} WHERE source_instance = %s",
+        (instance_name,)
+    )
+    result = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return result
 
-    query = f"SELECT {table_config['select_columns']} FROM {table_config['table_name']}"
-    cursor.execute(query) #
+#mise a jour de extract_rows pour qui lit si le mode incremental aussi .
+def extract_rows(conn_str, table_config, instance_name):
+    """Lit les lignes d'une table selon son mode (full_snapshot ou incremental)."""
+    conn = pyodbc.connect(conn_str)
+    cursor = conn.cursor()
+
+    if table_config["mode"] == "incremental":
+        last_date = get_last_collecte(table_config["postgres_table"], instance_name)
+        if last_date:
+            query = f"""
+                SELECT {table_config['select_columns']} 
+                FROM {table_config['table_name']}
+                WHERE {table_config['date_column']} > ?
+            """
+            cursor.execute(query, last_date)
+        else:
+            query = f"SELECT {table_config['select_columns']} FROM {table_config['table_name']}"
+            cursor.execute(query)
+    else:
+        query = f"SELECT {table_config['select_columns']} FROM {table_config['table_name']}"
+        cursor.execute(query)
 
     rows = cursor.fetchall()
     columns = [col[0] for col in cursor.description]
-    #récupère toutes les lignes trouvées + description des colonnes
-
-    conn.close() #ferme la cnx 
+    conn.close()
     return rows, columns
-
 
 def row_to_event(row, columns, instance_name, metric_name):
     """Convertit une ligne SQL en dictionnaire pret pour JSON."""
@@ -122,7 +169,7 @@ def process_table(table_config):
    
 
         try:
-            rows, columns = extract_rows(instance["conn_str"], table_config)
+            rows, columns = extract_rows(instance["conn_str"], table_config,name)
         except Exception as e:
             print(f"Erreur de connexion sur {name} : {e}")
             continue

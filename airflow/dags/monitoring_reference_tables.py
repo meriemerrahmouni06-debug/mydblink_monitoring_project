@@ -11,26 +11,34 @@ default_args = {
 }
 
 def run_producer():
-    result = subprocess.run(
-        ["python", "/opt/airflow/producer/producer.py"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    logging.info(result.stdout) #affiche les sorties dans les logs airflow
-    if result.stderr:
-        logging.warning(result.stderr)#sil y a une erreur s'affiche dans les logs
+    try:
+        result = subprocess.run(
+            ["python", "/opt/airflow/producer/producer.py"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logging.info(result.stdout)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"STDOUT: {e.stdout}")
+        logging.error(f"STDERR: {e.stderr}")
+        raise
+
 
 def run_consumer():
-    result = subprocess.run(
-        ["python", "/opt/airflow/consumer/consumer.py"],#runner a partir d'airflow
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    logging.info(result.stdout)
-    if result.stderr:
-        logging.warning(result.stderr)
+    try:
+        result = subprocess.run(
+            ["python", "/opt/airflow/consumer/consumer.py"],#runner a partir d'airflow
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logging.info(result.stdout)
+    except subprocess.CalledProcessError as e:
+            logging.error(f"STDOUT: {e.stdout}")
+            logging.error(f"STDERR: {e.stderr}")
+            raise
+    
 
 with DAG(
     dag_id='monitoring_pipeline',#nom unique de ce DAG

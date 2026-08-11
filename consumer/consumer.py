@@ -186,6 +186,34 @@ TOPICS = [
             inserted_at = NOW()
     """,
 },
+{
+    "topic": "monitoring.indexes",
+    "table": "raw_indexes",
+    "insert_sql": """
+        INSERT INTO raw_data.raw_indexes (
+            metric, source_instance, server_name, instance_name, database_name,
+            owner_name, table_name, index_name, index_id, filegroup_name,
+            index_type, no_of_keys, index_size, used_size, free_size,
+            rows_count, row_mod_ctr, original_fill_factor, date_collecte
+        )
+        VALUES (
+            %(metric)s, %(source_instance)s, %(ServerName)s, %(InstanceName)s, %(DatabaseName)s,
+            %(OwnerName)s, %(TableName)s, %(IndexName)s, %(IndexId)s, %(FileGroupName)s,
+            %(Type)s, %(No_OfKeys)s, %(IndexSize)s, %(UsedSize)s, %(FreeSize)s,
+            %(Rows)s, %(RowModCtr)s, %(OriginalFillFactor)s, %(DateCollecte)s
+        )
+        ON CONFLICT (source_instance, database_name,owner_name, table_name, index_name,date_collecte)
+        DO UPDATE SET
+            index_size = EXCLUDED.index_size,
+            used_size = EXCLUDED.used_size,
+            free_size = EXCLUDED.free_size,
+            rows_count = EXCLUDED.rows_count,
+            row_mod_ctr = EXCLUDED.row_mod_ctr,
+            original_fill_factor = EXCLUDED.original_fill_factor,
+            date_collecte = EXCLUDED.date_collecte,
+            inserted_at = NOW()
+    """,
+},
 
 
 ]

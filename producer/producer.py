@@ -7,6 +7,8 @@ load_dotenv()
 import psycopg2
 #pour maintenant envoyer a kafka :
 from kafka import KafkaProducer
+#pour gerer les donnees decimal :
+from decimal import Decimal
 
 #configuration de connexion avec PostgreSQL , pour mode incremental .]
 #pour faire consultation ou je suis , derniere DateCollecte .
@@ -69,6 +71,7 @@ TABLES = [
         "metric": "servers",
         "select_columns": "Id, ServerName, DateCollecte",
         "mode": "full_snapshot",   # table de reference, peu de lignes -> on relit tout a chaque fois
+        "frequency": "daily",
     },
     # voila , 2 eme table instances.
     {
@@ -77,6 +80,7 @@ TABLES = [
         "metric": "instances",
         "select_columns": "Id, ServerName, InstanceName, DateCollecte",
         "mode": "full_snapshot",
+        "frequency": "daily",
     },
     #3 eme table databases.
     {
@@ -85,6 +89,7 @@ TABLES = [
         "metric": "databases",
         "select_columns": "Id, ServerName, InstanceName, DatabaseName, DateCollecte",
         "mode": "full_snapshot", #lit tout 
+        "frequency": "daily",
     
     },
     #4 eme table TBMonitorCPU(mode incremental)
@@ -96,6 +101,66 @@ TABLES = [
     "mode": "incremental",
     "date_column": "DateCollecte",
     "postgres_table": "raw_cpu",
+    "frequency": "30min",#pour separer (distinction).
+    },
+    # 5 eme table TBMonitorMemory
+    {
+    "table_name": "[msdb].[DBMonitor].[TBMonitorMemory]",
+    "topic": "monitoring.memory",
+    "metric": "memory",
+    "select_columns": "id, DateCollecte, DateCollecte2, ServerName, InstanceName, Total_OSMemory, AvalaibleMemory",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_memory",
+    "frequency": "30min",
+    },
+        # 6 eme table TBMonitorDisk
+    {
+    "table_name": "[msdb].[DBMonitor].[TBMonitorDiskSpace]",
+    "topic": "monitoring.disk",
+    "metric": "disk",
+    "select_columns": "id, DateCollecte, DateCollecte2, Drive_name, InstanceName, PhysicalNetbiosName,Total_space_GB,Free_Space_GB",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_diskspace",
+    "frequency": "30min",
+    },
+
+    {
+    "table_name": "[msdb].[DBMonitor].[TBMonitorBackupStatus]",
+    "topic": "monitoring.backup",
+    "metric": "backup",
+    "select_columns": "DateCollecte, ServerName, InstanceName, DatabaseName, DatabaseType, LastBackupDate, BackupStatus",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_backupstatus",
+    },
+    {
+    "table_name": "[msdb].[DBMonitor].[ServiceStatus]",
+    "topic": "monitoring.servicestatus",
+    "metric": "servicestatus",
+    "select_columns": "id, DateCollecte, ServerName, InstanceName, ServiceName, Status",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_servicestatus",
+},
+    {
+    "table_name": "[msdb].[DBMonitor].[BackupsDetails]",
+    "topic": "monitoring.backupsdetails",
+    "metric": "backupsdetails",
+    "select_columns": "ID, DateCollecte, ServerName, InstanceName, DatabaseName, RecoveryModel, Full_Start_Date, Full_Duration, Full_Size, Differential_Start_Date, Differential_Duration, Differential_Size, Log_Start_Date, Log_Duration, Log_Size, Worst_RPO_Last_30_Days",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_backupsdetails",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[BackupHistory]",
+    "topic": "monitoring.backuphistory",
+    "metric": "backuphistory",
+    "select_columns": "ID, DateCollecte, ServerName, InstanceName, DatabaseName, Type, StartDate, Duration, Size, CopyOnly, Compressed, Encrypted, Location",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_backuphistory",
 },
 ]
 #code en byte pour kafka comprend 
@@ -154,8 +219,9 @@ def row_to_event(row, columns, instance_name, metric_name):
         # datetime -> string ISO pour que ce soit serialisable en JSON
         if hasattr(value, "isoformat"):
             value = value.isoformat() #transform datetime en text
+        elif isinstance(value, Decimal):
+            value = float(value)#gerer les decimals , transforme decimal en text.
         event[key] = value
-
     return event
 
 
@@ -166,7 +232,6 @@ def process_table(table_config):
         name = instance["name"]
         print(f"\n--- {name} ---")
 
-   
 
         try:
             rows, columns = extract_rows(instance["conn_str"], table_config,name)
@@ -185,6 +250,11 @@ def process_table(table_config):
             kafka_producer.send(table_config["topic"], value=event)
 
     kafka_producer.flush()
+#pour filtrer selon la frequence , dag 1 appelle par daily et lautre par 30min.    
+def process_all_tables(frequency_filter):
+    for table_config in TABLES:
+        if table_config["frequency"] == frequency_filter:
+            process_table(table_config)
 
 def main():
     for table_config in TABLES:

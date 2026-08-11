@@ -134,6 +134,7 @@ TABLES = [
     "mode": "incremental",
     "date_column": "DateCollecte",
     "postgres_table": "raw_backupstatus",
+    "frequency": "30min",
     },
     {
     "table_name": "[msdb].[DBMonitor].[ServiceStatus]",
@@ -143,6 +144,7 @@ TABLES = [
     "mode": "incremental",
     "date_column": "DateCollecte",
     "postgres_table": "raw_servicestatus",
+    "frequency": "30min",
 },
     {
     "table_name": "[msdb].[DBMonitor].[BackupsDetails]",
@@ -152,6 +154,7 @@ TABLES = [
     "mode": "incremental",
     "date_column": "DateCollecte",
     "postgres_table": "raw_backupsdetails",
+    "frequency": "30min",
 },
 {
     "table_name": "[msdb].[DBMonitor].[BackupHistory]",
@@ -161,7 +164,19 @@ TABLES = [
     "mode": "incremental",
     "date_column": "DateCollecte",
     "postgres_table": "raw_backuphistory",
+    "frequency": "30min",
 },
+{
+    "table_name": "[msdb].[DBMonitor].[IndexesInfo]",
+    "topic": "monitoring.indexes",
+    "metric": "indexes",
+    "select_columns": "DateCollecte, ServerName, InstanceName, DatabaseName, OwnerName, TableName, IndexName, IndexId, FileGroupName, Type, No_OfKeys, IndexSize, UsedSize, FreeSize, Rows, RowModCtr, OriginalFillFactor",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_indexes",
+    "frequency": "30min",
+},
+
 ]
 #code en byte pour kafka comprend 
 kafka_producer = KafkaProducer(

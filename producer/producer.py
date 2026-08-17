@@ -269,26 +269,56 @@ TABLES = [
     "postgres_table": "raw_querybyduration",
     "frequency": "30min",
 },
-
 ]
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 #code en byte pour kafka comprend 
 kafka_producer = KafkaProducer(
-    bootstrap_servers="localhost:9092",
+    #externaliser ladresse kafka : 
+    # bootstrap_servers="localhost:9092",
+    bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
     value_serializer=lambda v: json.dumps(v, ensure_ascii=False).encode("utf-8"),
 )
 # va etre appeler dans (extract_rows() ,si le mode est incremental , non sinon .
 def get_last_collecte(table_name, instance_name):
-    """Recupere la derniere date deja enregistree pour cette instance, dans Postgres."""
-    conn = psycopg2.connect(**PG_CONN)
-    cursor = conn.cursor()
-    cursor.execute(
-        f"SELECT MAX(date_collecte) FROM raw_data.{table_name} WHERE source_instance = %s",
-        (instance_name,)
-    )
-    result = cursor.fetchone()[0]
-    cursor.close()
-    conn.close()
-    return result
+    """
+    Recupere le dernier date_collecte connu pour l'extraction incrementale.
+    Retourne None en cas d'echec -> declenche une extraction complete en secours.
+    """
+    conn = None
+    cursor = None
+    try:
+        conn = psycopg2.connect(**PG_CONN)
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT MAX(date_collecte) FROM raw_data.{table_name} "
+            f"WHERE source_instance = %s",
+            (instance_name,)
+        )
+        result = cursor.fetchone()[0]
+        return result
+
+    except psycopg2.errors.UndefinedTable:
+        print(f"[WARNING] Table raw_data.{table_name} n'existe pas encore. "
+            f"Extraction complete pour l'instance '{instance_name}'.")
+        return None
+
+    except psycopg2.OperationalError as e:
+        print(f"[WARNING] Connexion PostgreSQL echouee pour "
+            f"raw_data.{table_name}/{instance_name} : {e}. "
+            f"Extraction complete en secours.")
+        return None
+
+    except Exception as e:
+        print(f"[WARNING] Erreur inattendue pour "
+            f"raw_data.{table_name}/{instance_name} : {e}. "
+            f"Extraction complete en secours.")
+        return None
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 #mise a jour de extract_rows pour qui lit si le mode incremental aussi .
 def extract_rows(conn_str, table_config, instance_name):

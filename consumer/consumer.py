@@ -435,13 +435,14 @@ TOPICS = [
 def get_pg_connection():
     return psycopg2.connect(**PG_CONN)
 
-
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 def build_consumer():
     """Un seul consumer qui ecoute tous les topics de TOPICS en meme temps."""
     topic_names = [t["topic"] for t in TOPICS]
     return KafkaConsumer(
         *topic_names,
-        bootstrap_servers="localhost:9092",
+        #bootstrap_servers="localhost:9092",
+        bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
         auto_offset_reset="earliest",   # lit depuis le debut , si aucun offset connu
         enable_auto_commit=True,        # offset
         group_id="monitoring-consumer-group",#à partir d'où ? reprendre la lecture

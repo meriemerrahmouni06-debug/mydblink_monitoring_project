@@ -13,6 +13,13 @@ services:
       - "${POSTGRES_RAW_PORT}:5432"
     volumes:
       - postgres_raw_data:/var/lib/postgresql/data
+       # Mount init script -- executes once on first docker compose up
+      - ./postgres/init:/docker-entrypoint-initdb.d
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_RAW_USER}"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0

@@ -176,6 +176,99 @@ TABLES = [
     "postgres_table": "raw_indexes",
     "frequency": "30min",
 },
+{
+    "table_name": "[msdb].[DBMonitor].[TBMonitorCollecteFragmentationTable]",
+    "topic": "monitoring.fragmentation",
+    "metric": "fragmentation",
+    "select_columns": (
+        "DateCollecte, DateCollecte2, PhysicalNetbiosName, InstanceName, "
+        "DatabaseName, DatabaseID, full_obj_name, index_id, name, "
+        "index_type_desc, index_depth, index_level, "
+        "[AVG Fragmentation] AS avg_fragmentation, fragment_count, Rank"
+    ),
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_fragmentation",
+    "frequency": "30min",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[ActivityMonitorProcesses]",
+    "topic": "monitoring.activitymonitor",
+    "metric": "activitymonitor",
+    "select_columns": "ID, DateCollecte, ServerName, InstanceName, SessionID, UserProcess, [User], DatabaseName, Application, Host, WaitType, Statement",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_activitymonitor",
+    "frequency": "30min",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[Region]",
+    "topic": "monitoring.region",
+    "metric": "region",
+    "select_columns": "Id, ServerName, DateCollecte, IPAddress, Region, Country, City, Latitude, Longitude",
+    "mode": "full_snapshot",   # table de reference, tres peu de lignes -> relue entierement a chaque fois
+    "frequency": "daily",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[Datafiles]",
+    "topic": "monitoring.datafiles",
+    "metric": "datafiles",
+    "select_columns": "Id, DateCollecte, DateCollecte2, InstanceName, PhysicalNetbiosName, DatabaseName, LogicalDataName, FileLocation, TotalFileSize_MB, FileType, FileGroupName",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_datafiles",
+    "frequency": "30min",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[LogFilesTableInfo]",
+    "topic": "monitoring.logfiles",
+    "metric": "logfiles",
+    "select_columns": "DateCollecte, ServerName, InstanceName, DatabaseName, [File], FileGroup, Type, TotalSize, UsedSize, FreeSize, UsedPct, FreePct, AutoGrow, GrowthsRemaining, MaxSize, GrowthInc, CanGrow, Path",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_logfiles",
+    "frequency": "30min",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[FileGroupsTableInfo]",
+    "topic": "monitoring.filegroups",
+    "metric": "filegroups",
+    "select_columns": "DateCollecte, ServerName, InstanceName, DatabaseName, FileGroup, FileCount, Type, AllocatedSizeUsed, TotalSizeUsed, TotalSize, UsedSize, FreeSize, CanGrow",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_filegroups",
+    "frequency": "30min",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[TablesInfo]",
+    "topic": "monitoring.tablesinfo",
+    "metric": "tablesinfo",
+    "select_columns": "DateCollecte, ServerName, InstanceName, DatabaseName, OwnerName, TableName, FileGroupName, TableSize, ReservedSize, UsedSize, FreeSize, PercentOfDB, Rows, ReservedMemory, UsedMemory, NumberOfPartitions, CompressionType, TableType",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_tablesinfo",
+    "frequency": "30min",   # peut-etre "daily" ??
+},
+{
+    "table_name": "[msdb].[DBMonitor].[ActiveTransactionsInfo]",
+    "topic": "monitoring.activetransactions",
+    "metric": "activetransactions",
+    "select_columns": "DateCollecte, ServerName, InstanceName, DatabaseName, SqlText, ExecutionCount, CpuTime, TotalElapsedTime, CreationTime",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_activetransactions",
+    "frequency": "30min",
+},
+{
+    "table_name": "[msdb].[DBMonitor].[QueryByDurationTable]",
+    "topic": "monitoring.querybyduration",
+    "metric": "querybyduration",
+    "select_columns": "id, DateCollecte, DateCollecte2, ServerName, InstanceName, session_id, duration_ms, database_id, cpu_time_ms, wait_time, logical_reads, statement_text",
+    "mode": "incremental",
+    "date_column": "DateCollecte",
+    "postgres_table": "raw_querybyduration",
+    "frequency": "30min",
+},
 
 ]
 #code en byte pour kafka comprend 

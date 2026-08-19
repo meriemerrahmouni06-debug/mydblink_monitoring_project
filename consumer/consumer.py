@@ -6,9 +6,9 @@ import psycopg2
 from kafka import KafkaConsumer
 
 PG_CONN = {
-    "host": "localhost",
+    "host": os.getenv("POSTGRES_RAW_HOST", "localhost"),
     #pour plus de securite :
-    "port":os.getenv('POSTGRES_RAW_PORT'),
+    "port": "5432" if os.getenv("POSTGRES_RAW_HOST") else os.getenv("POSTGRES_RAW_PORT", "5436"),
     "dbname":os.getenv('POSTGRES_RAW_DB'),
     "user":os.getenv('POSTGRES_RAW_USER'),
     "password":os.getenv('POSTGRES_RAW_PASSWORD')

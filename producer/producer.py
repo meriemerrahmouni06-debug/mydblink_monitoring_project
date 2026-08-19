@@ -13,8 +13,8 @@ from decimal import Decimal
 #configuration de connexion avec PostgreSQL , pour mode incremental .]
 #pour faire consultation ou je suis , derniere DateCollecte .
 PG_CONN = {
-    "host": "localhost",
-    "port": os.getenv("POSTGRES_RAW_PORT"),
+    "host": os.getenv("POSTGRES_RAW_HOST", "localhost"),
+    "port": "5432" if os.getenv("POSTGRES_RAW_HOST") else os.getenv("POSTGRES_RAW_PORT", "5436"),
     "dbname": os.getenv("POSTGRES_RAW_DB"),
     "user": os.getenv("POSTGRES_RAW_USER"),
     "password": os.getenv("POSTGRES_RAW_PASSWORD"),
@@ -25,34 +25,15 @@ PG_CONN = {
 
 INSTANCES = [
     {
-        "name": "DESKTOP-TGCM8B5",
-        #ici c'est deja il y a une relation de confiance windows ,
-        #  le mode  "Trusted_Connection=yes;" suffit , sont dans meme domaine Windows .
+        "name": "localhost",
         "conn_str": (
-            "DRIVER={ODBC Driver 17 for SQL Server};"
-            "SERVER=192.168.1.27;"
+            "DRIVER={ODBC Driver 18 for SQL Server};"
+            "SERVER=172.28.16.1;"
             "DATABASE=msdb;"
-            "Trusted_Connection=yes;"
+            f"UID={os.getenv('SQL_UID')};"
+            f"PWD={os.getenv('SQL_PWD')};"
+            "TrustServerCertificate=yes;"
         ),
-    },
-    {
-        "name": "DESKTOP-F9GKO0O",
-        #il n' y a pas ici : une relation de confiance windows pas comme la 1 ere instance 
-        #"conn_str": (
-            #"DRIVER={ODBC Driver 17 for SQL Server};"
-            #"SERVER=DESKTOP-F9GKO0O;"
-            #"DATABASE=msdb;"
-            #"Trusted_Connection=yes;"
-        # ),
-        "conn_str": (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-F9GKO0O;"
-    "DATABASE=msdb;"
-    
-    f"UID={os.getenv('SQL_UID')};"
-    f"PWD={os.getenv('SQL_PWD')};"
-)
-
     },
 ]
 

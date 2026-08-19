@@ -23,16 +23,37 @@ PG_CONN = {
 # CONFIGURATION DES INSTANCES SQL SERVER
 # ============================================================
 
+#INSTANCES = [
+    #{
+        #"name": "localhost",
+        #"conn_str": (
+            #"DRIVER={ODBC Driver 18 for SQL Server};"
+            #"SERVER=192.168.1.23:9092;"
+            #"DATABASE=msdb;"
+            #f"UID={os.getenv('SQL_UID')};"
+            #f"PWD={os.getenv('SQL_PWD')};"
+            #"TrustServerCertificate=yes;"
+        #),
+    #},
+#]
 INSTANCES = [
     {
-        "name": "localhost",
+        "name": "DESKTOP-TGCM8B5",
         "conn_str": (
             "DRIVER={ODBC Driver 17 for SQL Server};"
-            f"SERVER={os.getenv('SQL_SERVER_HOST', 'localhost')};"
+            "SERVER=192.168.1.27;"
+            "DATABASE=msdb;"
+            "Trusted_Connection=yes;"
+        ),
+    },
+    {
+        "name": "DESKTOP-F9GKO0O",
+        "conn_str": (
+            "DRIVER={ODBC Driver 17 for SQL Server};"
+            "SERVER=DESKTOP-F9GKO0O;"
             "DATABASE=msdb;"
             f"UID={os.getenv('SQL_UID')};"
             f"PWD={os.getenv('SQL_PWD')};"
-            "TrustServerCertificate=yes;"
         ),
     },
 ]
@@ -301,30 +322,9 @@ def get_last_collecte(table_name, instance_name):
         if conn:
             conn.close()
 
-def fix_conn_str_driver(conn_str):
-    """Auto-detects available ODBC driver on system and updates connection string dynamically."""
-    try:
-        available = pyodbc.drivers()
-        if "ODBC Driver 18 for SQL Server" in available:
-            target_driver = "ODBC Driver 18 for SQL Server"
-        elif "ODBC Driver 17 for SQL Server" in available:
-            target_driver = "ODBC Driver 17 for SQL Server"
-        elif "SQL Server" in available:
-            target_driver = "SQL Server"
-        else:
-            return conn_str
-
-        for old_driver in ["ODBC Driver 17 for SQL Server", "ODBC Driver 18 for SQL Server", "SQL Server"]:
-            conn_str = conn_str.replace(f"DRIVER={{{old_driver}}}", f"DRIVER={{{target_driver}}}")
-            conn_str = conn_str.replace(f"DRIVER={old_driver}", f"DRIVER={{{target_driver}}}")
-    except Exception:
-        pass
-    return conn_str
-
 #mise a jour de extract_rows pour qui lit si le mode incremental aussi .
 def extract_rows(conn_str, table_config, instance_name):
     """Lit les lignes d'une table selon son mode (full_snapshot ou incremental)."""
-    conn_str = fix_conn_str_driver(conn_str)
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
 

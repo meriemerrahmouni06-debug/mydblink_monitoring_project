@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  #-------------------------
+  #dim_servers 
+  #------------------------
+  - name: dim_servers
+    description: "Dimension des serveurs."
+
+    columns:
+      - name: server_id
+        tests:
+          - not_null
+          - unique
+
+      - name: server_name
+        tests:
+          - not_null
+          - unique #d'apres 02_analytics.sql , CONSTRAINT.
+  #-------------------------
+  #dim_instances 
+  #------------------------
+  - name: dim_instances
+    description: "Dimension des instances SQL Server."
+
+    columns:
+      - name: instance_id
+        tests:
+          - not_null
+          - unique
+
+      - name: server_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_servers') #FK
+              field: server_id
+
+      - name: instance_name
+        tests:
+          - not_null
+  #-------------------------
+  #dim_databases
+  #------------------------
+  - name: dim_databases
+    description: "Dimension des bases de données."
+
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - unique
+
+      - name: instance_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instances')
+              field: instance_id
+
+      - name: database_name
+        tests:
+          - not_null

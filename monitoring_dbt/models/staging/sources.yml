@@ -1,11 +1,70 @@
+
 version: 2
 
 sources:
   - name: raw_data
     database: monitoring_raw
+    description: "Tables RAW contenant les données collectées depuis les instances SQL Server."
     schema: raw_data
 
     tables:
+
       - name: raw_servers
+        description: "Informations sur les serveurs."
+
       - name: raw_instances
+        description: "Informations sur les instances SQL Server."
+
       - name: raw_databases
+        description: "Informations sur les bases de données."
+
+      - name: raw_cpu
+        description: "Métriques CPU."
+
+      - name: raw_memory
+        description: "Métriques mémoire."
+
+      - name: raw_diskspace
+        description: "Informations sur l'espace disque."
+
+      - name: raw_backupstatus
+        description: "Statut des sauvegardes."
+
+      - name: raw_servicestatus
+        description: "Statut des services SQL Server."
+
+      - name: raw_backupsdetails
+        description: "Détails des sauvegardes."
+
+      - name: raw_backuphistory
+        description: "Historique des sauvegardes."
+
+      - name: raw_indexes
+        description: "Informations sur les index."
+
+      - name: raw_fragmentation
+        description: "Informations sur la fragmentation des index."
+
+      - name: raw_activitymonitor
+        description: "Activité des sessions SQL Server."
+
+      - name: raw_region
+        description: "Informations géographiques des serveurs."
+
+      - name: raw_datafiles
+        description: "Informations sur les fichiers de données."
+
+      - name: raw_logfiles
+        description: "Informations sur les fichiers journaux."
+
+      - name: raw_filegroups
+        description: "Informations sur les filegroups."
+
+      - name: raw_tablesinfo
+        description: "Informations sur les tables des bases de données."
+
+      - name: raw_activetransactions
+        description: "Transactions SQL Server actives."
+
+      - name: raw_querybyduration
+        description: "Requêtes classées selon leur durée d'exécution."

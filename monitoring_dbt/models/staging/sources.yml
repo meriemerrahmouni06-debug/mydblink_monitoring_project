@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: raw_data
+    database: monitoring_raw
+    schema: raw_data
+
+    tables:
+      - name: raw_servers
+      - name: raw_instances
+      - name: raw_databases

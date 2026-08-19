@@ -13,13 +13,9 @@ services:
       - "${POSTGRES_RAW_PORT}:5432"
     volumes:
       - postgres_raw_data:/var/lib/postgresql/data
-       # Mount init script -- executes once on first docker compose up
+      # Mount init script -- executes once on first docker compose up
       - ./postgres/init:/docker-entrypoint-initdb.d
-  healthcheck:
-    test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_RAW_USER}"]
-    interval: 10s
-    timeout: 5s
-    retries: 5
+  
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -54,7 +50,19 @@ services:
       POSTGRES_DB: ${POSTGRES_AIRFLOW_DB}
     volumes:
       - postgres_airflow_data:/var/lib/postgresql/data
-
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-postgres:1.7.latest
+    container_name: dbt
+    restart: "no"
+    env_file: .env
+    volumes:
+    - ./dbt:/usr/app/dbt
+    working_dir: /usr/app/dbt
+    entrypoint: ["tail", "-f", "/dev/null"] 
+    # garde le conteneur actif, n'arrete pas apres demarrage
+    #sans lancer dbt automatiquement, c'est pas service permanent comme KAFKA .
+    depends_on:
+    - postgres-raw
   airflow-init:
     image: apache/airflow:2.8.1-python3.10
     container_name: airflow-init

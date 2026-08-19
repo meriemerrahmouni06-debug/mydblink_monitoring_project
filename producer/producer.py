@@ -23,16 +23,37 @@ PG_CONN = {
 # CONFIGURATION DES INSTANCES SQL SERVER
 # ============================================================
 
+#INSTANCES = [
+    #{
+        #"name": "localhost",
+        #"conn_str": (
+            #"DRIVER={ODBC Driver 18 for SQL Server};"
+            #"SERVER=192.168.1.23:9092;"
+            #"DATABASE=msdb;"
+            #f"UID={os.getenv('SQL_UID')};"
+            #f"PWD={os.getenv('SQL_PWD')};"
+            #"TrustServerCertificate=yes;"
+        #),
+    #},
+#]
 INSTANCES = [
     {
-        "name": "localhost",
+        "name": "DESKTOP-TGCM8B5",
         "conn_str": (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            "SERVER=172.28.16.1;"
+            "DRIVER={ODBC Driver 17 for SQL Server};"
+            "SERVER=192.168.1.27;"
+            "DATABASE=msdb;"
+            "Trusted_Connection=yes;"
+        ),
+    },
+    {
+        "name": "DESKTOP-F9GKO0O",
+        "conn_str": (
+            "DRIVER={ODBC Driver 17 for SQL Server};"
+            "SERVER=DESKTOP-F9GKO0O;"
             "DATABASE=msdb;"
             f"UID={os.getenv('SQL_UID')};"
             f"PWD={os.getenv('SQL_PWD')};"
-            "TrustServerCertificate=yes;"
         ),
     },
 ]

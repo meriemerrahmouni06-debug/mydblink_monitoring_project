@@ -27,8 +27,8 @@ INSTANCES = [
     {
         "name": "localhost",
         "conn_str": (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            "SERVER=172.28.16.1;"
+            "DRIVER={ODBC Driver 17 for SQL Server};"
+            f"SERVER={os.getenv('SQL_SERVER_HOST', 'localhost')};"
             "DATABASE=msdb;"
             f"UID={os.getenv('SQL_UID')};"
             f"PWD={os.getenv('SQL_PWD')};"

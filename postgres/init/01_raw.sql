@@ -374,29 +374,5 @@ CREATE TABLE raw_data.raw_querybyduration (
     CONSTRAINT uq_querybyduration UNIQUE (source_instance, query_id)
 );
 
-SELECT * FROM raw_data.raw_querybyduration ;
-
-SELECT COUNT(*),instance_name FROM  raw_data.raw_querybyduration
-GROUP BY instance_name;
-
-SELECT * FROM raw_data.raw_activetransactions ;
-SELECT COUNT(*),instance_name FROM  raw_data.raw_activetransactions
-GROUP BY instance_name;
-
-
-CREATE INDEX idx_activetransactions_instance_date ON raw_data.raw_activetransactions (source_instance, date_collecte);
-
-SELECT COUNT(*),instance_name FROM  raw_data.raw_tablesinfo 
-GROUP BY instance_name;
-CREATE INDEX idx_tablesinfo_instance_date ON raw_data.raw_tablesinfo (source_instance, date_collecte);
-
-SELECT COUNT(*),instance_name FROM  raw_data.raw_filegroups
-GROUP BY instance_name;
-
-SELECT * FROM raw_data.raw_filegroups;
-
-SELECT COUNT(*),instance_name FROM  raw_data.raw_datafiles
-GROUP BY instance_name;
-
-
-
+CREATE INDEX IF NOT EXISTS idx_activetransactions_instance_date ON raw_data.raw_activetransactions (source_instance, date_collecte);
+CREATE INDEX IF NOT EXISTS idx_tablesinfo_instance_date ON raw_data.raw_tablesinfo (source_instance, date_collecte);

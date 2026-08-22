@@ -61,7 +61,7 @@ services:
     restart: "no"
     env_file: .env
     volumes:
-    - ./dbt:/usr/app/dbt
+    - ./monitoring_dbt:/usr/app/dbt
     working_dir: /usr/app/dbt
     entrypoint: ["tail", "-f", "/dev/null"] 
     # garde le conteneur actif, n'arrete pas apres demarrage
@@ -98,13 +98,14 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY}
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       POSTGRES_RAW_HOST: postgres-raw
-      _PIP_ADDITIONAL_REQUIREMENTS: "kafka-python pyodbc psycopg2-binary python-dotenv"
+      _PIP_ADDITIONAL_REQUIREMENTS: "kafka-python pyodbc psycopg2-binary python-dotenv dbt-postgres==1.7.*"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
       - ./producer:/opt/airflow/producer
       - ./consumer:/opt/airflow/consumer
+      - ./monitoring_dbt:/opt/airflow/monitoring_dbt
     ports:
       - "8081:8080"
     command: webserver
@@ -124,13 +125,14 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY}
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       POSTGRES_RAW_HOST: postgres-raw
-      _PIP_ADDITIONAL_REQUIREMENTS: "kafka-python pyodbc psycopg2-binary python-dotenv"
+      _PIP_ADDITIONAL_REQUIREMENTS: "kafka-python pyodbc psycopg2-binary python-dotenv dbt-postgres==1.7.*"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
       - ./producer:/opt/airflow/producer
       - ./consumer:/opt/airflow/consumer
+      - ./monitoring_dbt:/opt/airflow/monitoring_dbt
     command: scheduler
 
 

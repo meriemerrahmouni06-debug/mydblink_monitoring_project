@@ -1,0 +1,274 @@
+version: 2
+
+models:
+  #-------------------------
+  # fact_cpu
+  #-------------------------
+  - name: fact_cpu
+    description: "Métriques CPU collectées par instance SQL Server."
+    columns:
+      - name: instance_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instances')
+              field: instance_id
+      - name: cpu_id
+        tests:
+          - not_null
+      - name: date_collecte
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_memory
+  #-------------------------
+  - name: fact_memory
+    description: "Métriques mémoire collectées par instance SQL Server."
+    columns:
+      - name: instance_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instances')
+              field: instance_id
+      - name: memory_id
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_diskspace
+  #-------------------------
+  - name: fact_diskspace
+    description: "Métriques d'espace disque par instance SQL Server."
+    columns:
+      - name: instance_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instances')
+              field: instance_id
+      - name: disk_id
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_backupstatus
+  #-------------------------
+  - name: fact_backupstatus
+    description: "Statut des sauvegardes par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+
+  #-------------------------
+  # fact_servicestatus
+  #-------------------------
+  - name: fact_servicestatus
+    description: "Statut des services SQL Server par instance."
+    columns:
+      - name: instance_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instances')
+              field: instance_id
+      - name: service_name
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_backupsdetails
+  #-------------------------
+  - name: fact_backupsdetails
+    description: "Détails des sauvegardes (full, differential, log) par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: backup_id
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_backuphistory
+  #-------------------------
+  - name: fact_backuphistory
+    description: "Historique complet des sauvegardes par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: backup_id
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_indexes
+  #-------------------------
+  - name: fact_indexes
+    description: "Informations sur les index par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: index_name
+        tests:
+          - not_null
+      - name: table_name
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_fragmentation
+  #-------------------------
+  - name: fact_fragmentation
+    description: "Taux de fragmentation des index par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: full_obj_name
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_activitymonitor
+  #-------------------------
+  - name: fact_activitymonitor
+    description: "Activité des sessions SQL Server par instance."
+    columns:
+      - name: instance_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instances')
+              field: instance_id
+      - name: activity_id
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_region
+  #-------------------------
+  - name: fact_region
+    description: "Informations géographiques des serveurs."
+    columns:
+      - name: server_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_servers')
+              field: server_id
+
+  #-------------------------
+  # fact_datafiles
+  #-------------------------
+  - name: fact_datafiles
+    description: "Informations sur les fichiers de données par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: datafile_id
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_logfiles
+  #-------------------------
+  - name: fact_logfiles
+    description: "Informations sur les fichiers journaux par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: log_file_name
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_filegroups
+  #-------------------------
+  - name: fact_filegroups
+    description: "Informations sur les filegroups par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: filegroup_name
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_tablesinfo
+  #-------------------------
+  - name: fact_tablesinfo
+    description: "Informations sur les tables par base de données (taille, lignes, compression)."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: table_name
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_activetransactions
+  #-------------------------
+  - name: fact_activetransactions
+    description: "Transactions SQL Server actives par base de données."
+    columns:
+      - name: database_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_databases')
+              field: database_id
+      - name: creation_time
+        tests:
+          - not_null
+
+  #-------------------------
+  # fact_querybyduration
+  #-------------------------
+  - name: fact_querybyduration
+    description: "Requêtes classées par durée d'exécution, par instance SQL Server."
+    columns:
+      - name: instance_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_instances')
+              field: instance_id
+      - name: query_id
+        tests:
+          - not_null

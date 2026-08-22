@@ -448,7 +448,7 @@ def build_consumer():
         group_id="monitoring-consumer-group",#à partir d'où ? reprendre la lecture
         value_deserializer=lambda v: json.loads(v.decode("utf-8")),
     )
-()
+
 def main():
     consumer = build_consumer()
     pg_conn = get_pg_connection()

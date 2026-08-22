@@ -1,13 +1,13 @@
-from airflow import DAG #pipeline orchestree
-from airflow.operators.python import PythonOperator #airflow aperator qui execute une fonction python
+from airflow import DAG
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-import subprocess #to run other programms (externes)
-import logging #to write messages (Airflow logs) 
+import subprocess
+import logging
 
 default_args = {
     'owner': 'meriem',
-    'retries': 2,#try before exit
-    'retry_delay': timedelta(minutes=2),# 2 minutes between retries.
+    'retries': 2,
+    'retry_delay': timedelta(minutes=2),
 }
 
 def run_producer():
@@ -28,35 +28,65 @@ def run_producer():
 def run_consumer():
     try:
         result = subprocess.run(
-            ["python", "/opt/airflow/consumer/consumer.py"],#runner a partir d'airflow
+            ["python", "/opt/airflow/consumer/consumer.py"],
             check=True,
             capture_output=True,
             text=True,
         )
         logging.info(result.stdout)
     except subprocess.CalledProcessError as e:
-            logging.error(f"STDOUT: {e.stdout}")
-            logging.error(f"STDERR: {e.stderr}")
-            raise
-    
+        logging.error(f"STDOUT: {e.stdout}")
+        logging.error(f"STDERR: {e.stderr}")
+        raise
+
+
+def run_dbt():
+    """Exécute dbt run directement dans le container Airflow (dbt-postgres installé via pip)."""
+    try:
+        result = subprocess.run(
+            [
+                "/home/airflow/.local/bin/dbt", "run",
+                "--project-dir", "/opt/airflow/monitoring_dbt",
+                "--profiles-dir", "/opt/airflow/monitoring_dbt",
+                "--log-path",    "/tmp/dbt_logs",
+                "--target-path", "/tmp/dbt_target",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logging.info(result.stdout)
+        if result.stderr:
+            logging.warning(result.stderr)
+    except subprocess.CalledProcessError as e:
+        logging.error(f"STDOUT: {e.stdout}")
+        logging.error(f"STDERR: {e.stderr}")
+        raise
+
 
 with DAG(
-    dag_id='monitoring_pipeline',#nom unique de ce DAG
-    default_args=default_args,#
-    schedule_interval='@daily',   # a ajuster par table plus tard si besoin
+    dag_id='monitoring_pipeline',
+    default_args=default_args,
+    schedule_interval='@daily',
     start_date=datetime(2026, 8, 7),
-    catchup=False,#ignore le passé, ne traite que les cycles a partir de maintenant
-    tags=['monitoring', 'kafka'],
+    catchup=False,
+    tags=['monitoring', 'kafka', 'dbt'],
 ) as dag:
-    #2 tasks 
+
     task_producer = PythonOperator(
         task_id='run_producer',
-        python_callable=run_producer,#fct python
+        python_callable=run_producer,
     )
 
     task_consumer = PythonOperator(
         task_id='run_consumer',
-        python_callable=run_consumer,#fct python.
+        python_callable=run_consumer,
     )
-    #order producer -> consumer 
-    task_producer >> task_consumer
+
+    task_dbt = PythonOperator(
+        task_id='run_dbt',
+        python_callable=run_dbt,
+    )
+
+    # producer -> consumer -> dbt
+    task_producer >> task_consumer >> task_dbt

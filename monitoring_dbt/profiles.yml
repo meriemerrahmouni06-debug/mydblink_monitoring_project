@@ -3,8 +3,8 @@ monitoring_dbt:
   outputs:
     dev:
       type: postgres
-      host: "{{ env_var('POSTGRES_RAW_HOST', 'postgres-raw') }}"
-      port: 5432
+      host: localhost
+      port: 5433
       user: "{{ env_var('POSTGRES_RAW_USER') }}"
       password: "{{ env_var('POSTGRES_RAW_PASSWORD') }}"
       dbname: "{{ env_var('POSTGRES_RAW_DB') }}"

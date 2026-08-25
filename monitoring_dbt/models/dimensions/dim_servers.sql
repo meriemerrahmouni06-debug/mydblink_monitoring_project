@@ -1,6 +1,15 @@
+{{ config(
+    materialized='table'
+) }}
+
 SELECT
-    server_id,
+    {{ dbt_utils.generate_surrogate_key([
+        'server_name'
+    ]) }} AS server_id,
+
     server_name
+
 FROM {{ ref('stg_servers') }}
-WHERE server_id IS NOT NULL
-AND server_name IS NOT NULL
+
+WHERE server_name IS NOT NULL
+AND TRIM(server_name) <> ''

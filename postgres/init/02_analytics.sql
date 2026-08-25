@@ -8,23 +8,27 @@ CREATE SCHEMA IF NOT EXISTS analytics;
 -- 1. DIMENSION TABLES (Hierarchy)
 
 CREATE TABLE IF NOT EXISTS analytics.dim_servers (
-    server_id SERIAL PRIMARY KEY,
+    server_id VARCHAR(64) PRIMARY KEY,
     server_name VARCHAR(255) NOT NULL,
     inserted_at TIMESTAMP DEFAULT NOW(),
     CONSTRAINT uq_dim_servers UNIQUE (server_name)
 );
 
 CREATE TABLE IF NOT EXISTS analytics.dim_instances (
-    instance_id SERIAL PRIMARY KEY,
-    server_id INT NOT NULL REFERENCES analytics.dim_servers(server_id) ON DELETE CASCADE,
+    instance_id VARCHAR(64) PRIMARY KEY,
+    server_id VARCHAR(64) NOT NULL
+        REFERENCES analytics.dim_servers(server_id)
+        ON DELETE CASCADE,
     instance_name VARCHAR(255) NOT NULL,
     inserted_at TIMESTAMP DEFAULT NOW(),
     CONSTRAINT uq_dim_instances UNIQUE (server_id, instance_name)
 );
 
 CREATE TABLE IF NOT EXISTS analytics.dim_databases (
-    database_id SERIAL PRIMARY KEY,
-    instance_id INT NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) PRIMARY KEY,
+    instance_id VARCHAR(64) NOT NULL
+        REFERENCES analytics.dim_instances(instance_id)
+        ON DELETE CASCADE,
     database_name VARCHAR(255) NOT NULL,
     inserted_at TIMESTAMP DEFAULT NOW(),
     CONSTRAINT uq_dim_databases UNIQUE (instance_id, database_name)
@@ -34,7 +38,7 @@ CREATE TABLE IF NOT EXISTS analytics.dim_databases (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_cpu (
     id SERIAL PRIMARY KEY,
-    instance_id INT NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
+    instance_id  VARCHAR(64) NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
     cpu_id INT,
     cpu_idle FLOAT,
     cpu_sql FLOAT,
@@ -46,7 +50,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_cpu (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_memory (
     id SERIAL PRIMARY KEY,
-    instance_id INT NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
+    instance_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
     memory_id INT,
     total_osmemory FLOAT,
     avalaible_memory FLOAT,
@@ -58,7 +62,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_memory (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_diskspace (
     id SERIAL PRIMARY KEY,
-    instance_id INT NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
+    instance_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
     disk_id INT,
     drive_name VARCHAR(255),
     physical_netbios_name VARCHAR(512),
@@ -72,7 +76,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_diskspace (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_backupstatus (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     database_type VARCHAR(100),
     last_backup_date TIMESTAMP,
     backup_status VARCHAR(100),
@@ -83,7 +87,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_backupstatus (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_servicestatus (
     id SERIAL PRIMARY KEY,
-    instance_id INT NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
+    instance_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
     service_id INT,
     service_name VARCHAR(255),
     status VARCHAR(100),
@@ -94,7 +98,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_servicestatus (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_backupsdetails (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     backup_id INT,
     recovery_model VARCHAR(100),
     full_start_date TIMESTAMP,
@@ -114,7 +118,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_backupsdetails (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_backuphistory (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     backup_id INT,
     backup_type VARCHAR(50),
     start_date TIMESTAMP,
@@ -131,7 +135,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_backuphistory (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_indexes (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     owner_name VARCHAR(255),
     table_name VARCHAR(255),
     index_name VARCHAR(255),
@@ -152,7 +156,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_indexes (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_fragmentation (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     date_collecte TIMESTAMP,
     date_collecte2 TIMESTAMP,
     physical_netbios_name VARCHAR(512),
@@ -171,8 +175,8 @@ CREATE TABLE IF NOT EXISTS analytics.fact_fragmentation (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_activitymonitor (
     id SERIAL PRIMARY KEY,
-    instance_id INT NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
-    database_id INT REFERENCES analytics.dim_databases(database_id) ON DELETE SET NULL,
+    instance_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) REFERENCES analytics.dim_databases(database_id) ON DELETE SET NULL,
     activity_id INT,
     date_collecte TIMESTAMP,
     session_id INT,
@@ -188,7 +192,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_activitymonitor (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_region (
     id SERIAL PRIMARY KEY,
-    server_id INT NOT NULL REFERENCES analytics.dim_servers(server_id) ON DELETE CASCADE,
+    server_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_servers(server_id) ON DELETE CASCADE,
     region_id INT,
     date_collecte TIMESTAMP,
     ip_address VARCHAR(100),
@@ -203,7 +207,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_region (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_datafiles (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     datafile_id INT,
     date_collecte TIMESTAMP,
     date_collecte2 TIMESTAMP,
@@ -219,7 +223,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_datafiles (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_logfiles (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     date_collecte TIMESTAMP,
     log_file_name VARCHAR(256),
     filegroup_name VARCHAR(256),
@@ -241,7 +245,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_logfiles (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_filegroups (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     date_collecte TIMESTAMP,
     filegroup_name VARCHAR(256),
     file_count INT,
@@ -258,7 +262,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_filegroups (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_tablesinfo (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     date_collecte TIMESTAMP,
     owner_name VARCHAR(256),
     table_name VARCHAR(256),
@@ -280,7 +284,7 @@ CREATE TABLE IF NOT EXISTS analytics.fact_tablesinfo (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_activetransactions (
     id SERIAL PRIMARY KEY,
-    database_id INT NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_databases(database_id) ON DELETE CASCADE,
     date_collecte TIMESTAMP,
     sql_text TEXT,
     execution_count BIGINT,
@@ -293,8 +297,8 @@ CREATE TABLE IF NOT EXISTS analytics.fact_activetransactions (
 
 CREATE TABLE IF NOT EXISTS analytics.fact_querybyduration (
     id SERIAL PRIMARY KEY,
-    instance_id INT NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
-    database_id INT REFERENCES analytics.dim_databases(database_id) ON DELETE SET NULL,
+    instance_id VARCHAR(64) NOT NULL REFERENCES analytics.dim_instances(instance_id) ON DELETE CASCADE,
+    database_id VARCHAR(64) REFERENCES analytics.dim_databases(database_id) ON DELETE SET NULL,
     query_id INT,
     date_collecte TIMESTAMP,
     date_collecte2 TIMESTAMP,

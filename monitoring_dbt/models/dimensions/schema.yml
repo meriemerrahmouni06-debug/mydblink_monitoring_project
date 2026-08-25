@@ -1,14 +1,18 @@
 version: 2
 
 models:
-  #-------------------------
-  #dim_servers 
-  #------------------------
+
+  # =========================
+  # DIM SERVERS
+  # =========================
+
   - name: dim_servers
     description: "Dimension des serveurs."
 
     columns:
+
       - name: server_id
+        description: "Clé analytique stable du serveur."
         tests:
           - not_null
           - unique
@@ -16,42 +20,54 @@ models:
       - name: server_name
         tests:
           - not_null
-          - unique #d'apres 02_analytics.sql , CONSTRAINT.
-  #-------------------------
-  #dim_instances 
-  #------------------------
+          - unique
+
+
+  # =========================
+  # DIM INSTANCES
+  # =========================
+
   - name: dim_instances
     description: "Dimension des instances SQL Server."
 
     columns:
+
       - name: instance_id
+        description: "Clé analytique stable de l'instance."
         tests:
           - not_null
           - unique
 
       - name: server_id
+        description: "Clé analytique du serveur parent."
         tests:
           - not_null
           - relationships:
-              to: ref('dim_servers') #FK
+              to: ref('dim_servers')
               field: server_id
 
       - name: instance_name
         tests:
           - not_null
-  #-------------------------
-  #dim_databases
-  #------------------------
+
+
+  # =========================
+  # DIM DATABASES
+  # =========================
+
   - name: dim_databases
     description: "Dimension des bases de données."
 
     columns:
+
       - name: database_id
+        description: "Clé analytique stable de la base."
         tests:
           - not_null
           - unique
 
       - name: instance_id
+        description: "Clé analytique de l'instance parent."
         tests:
           - not_null
           - relationships:

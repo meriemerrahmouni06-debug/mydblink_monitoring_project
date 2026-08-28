@@ -23,32 +23,43 @@ PG_CONN = {
 # CONFIGURATION DES INSTANCES SQL SERVER
 # ============================================================
 
-#INSTANCES = [
-    #{
-        #"name": "localhost",
-        #"conn_str": (
-            #"DRIVER={ODBC Driver 18 for SQL Server};"
-            #"SERVER=192.168.1.23:9092;"
-            #"DATABASE=msdb;"
-            #f"UID={os.getenv('SQL_UID')};"
-            #f"PWD={os.getenv('SQL_PWD')};"
-            #"TrustServerCertificate=yes;"
-        #),
-    #},
-#]
 INSTANCES = [
     {
-        "name": "localhost",
+        "name": "DESKTOP-TGCM8B5",
         "conn_str": (
-            "DRIVER={ODBC Driver 17 for SQL Server};"
-            f"SERVER={os.getenv('SQL_SERVER_HOST', 'localhost')};"
+            "DRIVER={ODBC Driver 18 for SQL Server};"
+            "SERVER=192.168.1.27;"
             "DATABASE=msdb;"
-            f"UID={os.getenv('SQL_UID')};"
-            f"PWD={os.getenv('SQL_PWD')};"
+            f"UID={os.getenv('SQL1_UID')};"
+            f"PWD={os.getenv('SQL1_PWD')};"
+            "TrustServerCertificate=yes;"
+        ),
+    },
+    {
+        "name": "DESKTOP-F9GKO0O",
+        "conn_str": (
+            "DRIVER={ODBC Driver 18 for SQL Server};"
+            "SERVER=DESKTOP-F9GKO0O;"
+            "DATABASE=msdb;"
+            f"UID={os.getenv('SQL2_UID')};"
+            f"PWD={os.getenv('SQL2_PWD')};"
             "TrustServerCertificate=yes;"
         ),
     },
 ]
+#INSTANCES = [
+#    {
+#        "name": "host.docker.internal",
+#        "conn_str": (
+#            "DRIVER={ODBC Driver 17 for SQL Server};"
+#            f"SERVER={os.getenv('SQL_SERVER_HOST')};"
+#            "DATABASE=msdb;"
+#            f"UID={os.getenv('SQL_UID')};"
+#            f"PWD={os.getenv('SQL_PWD')};"
+#            "TrustServerCertificate=yes;"
+#       ),
+#    },
+#]
 
 # ============================================================
 # CONFIGURATION DES TABLES A TRAITER

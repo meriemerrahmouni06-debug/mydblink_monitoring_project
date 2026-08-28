@@ -44,17 +44,17 @@ def run_dbt():
     """Exécute dbt run directement dans le container Airflow (dbt-postgres installé via pip)."""
     try:
         result = subprocess.run(
-            [
-                "/home/airflow/.local/bin/dbt", "run",
-                "--project-dir", "/opt/airflow/monitoring_dbt",
-                "--profiles-dir", "/opt/airflow/monitoring_dbt",
-                "--log-path",    "/tmp/dbt_logs",
-                "--target-path", "/tmp/dbt_target",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+    [
+        "dbt", "run",
+        "--project-dir", "/opt/airflow/monitoring_dbt",
+        "--profiles-dir", "/opt/airflow/monitoring_dbt",
+        "--log-path", "/tmp/dbt_logs",
+        "--target-path", "/tmp/dbt_target",
+    ],
+    check=True,
+    capture_output=True,
+    text=True,
+)
         logging.info(result.stdout)
         if result.stderr:
             logging.warning(result.stderr)

@@ -92,6 +92,8 @@ services:
       - postgres-airflow
       - airflow-init
     env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_AIRFLOW_USER}:${POSTGRES_AIRFLOW_PASSWORD}@postgres-airflow/${POSTGRES_AIRFLOW_DB}
@@ -119,6 +121,8 @@ services:
       - postgres-airflow
       - airflow-init
     env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_AIRFLOW_USER}:${POSTGRES_AIRFLOW_PASSWORD}@postgres-airflow/${POSTGRES_AIRFLOW_DB}

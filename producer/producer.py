@@ -411,7 +411,19 @@ def process_table(table_config):
             event = row_to_event(row, columns, name, table_config["metric"])
             print(json.dumps(event, indent=2, ensure_ascii=False))
             #to send to kafka 
-            kafka_producer.send(table_config["topic"], value=event)
+            future = kafka_producer.send(
+                table_config["topic"],
+                value=event
+            )
+
+            metadata = future.get(timeout=10)
+
+            print(
+                f"Message Kafka envoyé : "
+                f"topic={metadata.topic}, "
+                f"partition={metadata.partition}, "
+                f"offset={metadata.offset}"
+)
 
     kafka_producer.flush()
 #pour filtrer selon la frequence , dag 1 appelle par daily et lautre par 30min.    

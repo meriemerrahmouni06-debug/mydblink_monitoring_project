@@ -464,24 +464,53 @@ def main():
     # poll() lit ce qui est disponible maintenant, attend au maximum 10 secondes,
     # puis rend la main -- contrairement a la boucle infinie precedente
     #pour repeter lappel / chaque appel 500 lignes max .
-    while True:
-        messages_batch = consumer.poll(timeout_ms=10000, max_records=500)
-        
+    total_traites = 0
+    polls_vides = 0
+    maximum_polls_vides = 3
+
+    while polls_vides < maximum_polls_vides:
+        messages_batch = consumer.poll(
+            timeout_ms=10000,
+            max_records=500
+    )
+
         if not messages_batch:
-            break  # plus rien a lire, on sort de la boucle
+            polls_vides += 1
+            print(
+                f"Aucun message reçu "
+                f"({polls_vides}/{maximum_polls_vides})"
+            )
+            continue
+
+        polls_vides = 0
 
         for topic_partition, messages in messages_batch.items():
+            print(
+                f"Lecture du topic {topic_partition.topic}, "
+                f"partition {topic_partition.partition} : "
+                f"{len(messages)} message(s)"
+            )
+
             for message in messages:
                 event = message.value
                 topic = message.topic
                 config = topic_to_config[topic]
+
                 try:
                     cursor.execute(config["insert_sql"], event)
-                    print(f"Insere/mis a jour dans {config['table']} : {event}")
-                    total_traites += 1
-                except Exception as e:
-                    print(f"Erreur d'insertion pour le topic {topic} : {e}")
 
+                    print(
+                        f"Inséré dans {config['table']} : "
+                        f"offset={message.offset}"
+                    )
+
+                    total_traites += 1
+
+                except Exception as e:
+                    print(
+                        f"Erreur d'insertion pour le topic "
+                        f"{topic} : {e}"
+                    )
     print(f"Termine. {total_traites} message(s) traite(s).")
     consumer.close()
     pg_conn.close()

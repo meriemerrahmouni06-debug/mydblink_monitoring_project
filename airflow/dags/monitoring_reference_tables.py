@@ -67,7 +67,7 @@ def run_dbt():
 with DAG(
     dag_id='monitoring_pipeline',
     default_args=default_args,
-    schedule_interval='*/30 * * * *',
+    schedule='*/30 * * * *',
     start_date=datetime(2026, 8, 7),
     catchup=False,
     tags=['monitoring', 'kafka', 'dbt'],

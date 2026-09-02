@@ -374,8 +374,12 @@ TOPICS = [
             %(PercentOfDB)s, %(Rows)s, %(ReservedMemory)s, %(UsedMemory)s, %(NumberOfPartitions)s,
             %(CompressionType)s, %(TableType)s
         )
-        ON CONFLICT (source_instance, database_name, owner_name, table_name, date_collecte)
+        #costraint pour eviter millions collect tables info 
+        ON CONFLICT (source_instance, database_name, owner_name, table_name)
         DO UPDATE SET
+            date_collecte = EXCLUDED.date_collecte,
+            server_name = EXCLUDED.server_name,
+            instance_name = EXCLUDED.instance_name,
             table_size = EXCLUDED.table_size,
             reserved_size = EXCLUDED.reserved_size,
             used_size = EXCLUDED.used_size,
@@ -384,6 +388,9 @@ TOPICS = [
             rows_count = EXCLUDED.rows_count,
             reserved_memory = EXCLUDED.reserved_memory,
             used_memory = EXCLUDED.used_memory,
+            number_of_partitions = EXCLUDED.number_of_partitions,
+            compression_type = EXCLUDED.compression_type,
+            table_type = EXCLUDED.table_type,
             inserted_at = NOW()
     """,
 },

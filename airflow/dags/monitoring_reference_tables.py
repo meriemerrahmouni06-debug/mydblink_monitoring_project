@@ -39,6 +39,32 @@ def run_consumer():
         logging.error(f"STDERR: {e.stderr}")
         raise
 
+def run_purge():
+    """Exécute la procédure de purge des données RAW de plus de 24 heures."""
+    import psycopg2
+    import os
+
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("POSTGRES_RAW_HOST", "postgres-raw"),
+            port=os.getenv("POSTGRES_RAW_PORT", "5432"),
+            database=os.getenv("POSTGRES_RAW_DB"),
+            user=os.getenv("POSTGRES_RAW_USER"),
+            password=os.getenv("POSTGRES_RAW_PASSWORD"),
+        )
+
+        conn.autocommit = True
+
+        with conn.cursor() as cursor:
+            cursor.execute("CALL executeMonitoringPurge();")
+
+        logging.info("Purge monitoring exécutée avec succès.")
+
+        conn.close()
+
+    except Exception as e:
+        logging.error(f"Erreur lors de la purge monitoring : {e}")
+        raise
 
 def run_dbt():
     """Exécute dbt run directement dans le container Airflow (dbt-postgres installé via pip)."""
@@ -83,10 +109,15 @@ with DAG(
         python_callable=run_consumer,
     )
 
+    task_purge = PythonOperator(
+    task_id='run_purge',
+    python_callable=run_purge,
+    )
+
     task_dbt = PythonOperator(
         task_id='run_dbt',
         python_callable=run_dbt,
     )
 
-    # producer -> consumer -> dbt
-    task_producer >> task_consumer >> task_dbt
+# producer -> consumer -> purge -> dbt
+task_producer >> task_consumer >> task_purge >> task_dbt

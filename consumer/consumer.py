@@ -374,7 +374,8 @@ TOPICS = [
             %(PercentOfDB)s, %(Rows)s, %(ReservedMemory)s, %(UsedMemory)s, %(NumberOfPartitions)s,
             %(CompressionType)s, %(TableType)s
         )
-        #costraint pour eviter millions collect tables info 
+        
+        
         ON CONFLICT (source_instance, database_name, owner_name, table_name)
         DO UPDATE SET
             date_collecte = EXCLUDED.date_collecte,
